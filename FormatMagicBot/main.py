@@ -1,16 +1,25 @@
 import subprocess
 import sys
 
-# Принудительная установка Pillow, если не установлен
-try:
-    from PIL import Image
-    print("✅ Pillow уже установлен")
-except ImportError:
-    print("⚠️ Pillow не найден, устанавливаю...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "Pillow"])
-    from PIL import Image
-    print("✅ Pillow успешно установлен")
+# Принудительная установка нужных библиотек
+def install_package(package):
+    try:
+        __import__(package)
+        print(f"✅ {package} уже установлен")
+    except ImportError:
+        print(f"⚠️ {package} не найден, устанавливаю...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        print(f"✅ {package} успешно установлен")
 
+# Устанавливаем необходимые пакеты
+install_package("PIL")
+install_package("dotenv")
+install_package("telegram")
+
+# Теперь импорты
+from PIL import Image
+from dotenv import load_dotenv
+import os
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 from config import TOKEN, BOT_VERSION, BOT_AUTHOR
@@ -19,6 +28,9 @@ from handlers.convert_handler import handle_image
 from handlers.callback_handler import callback_handler
 from handlers.status_handler import status_command
 from handlers.payment_handler import buy_pro
+
+# Загрузка .env
+load_dotenv()
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
