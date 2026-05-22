@@ -1,7 +1,7 @@
 import subprocess
 import sys
 
-# Принудительная установка нужных библиотек
+# Принудительная установка нужных библиотек ДО любого импорта
 def install_package(package):
     try:
         __import__(package)
@@ -11,26 +11,21 @@ def install_package(package):
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
         print(f"✅ {package} успешно установлен")
 
-# Устанавливаем необходимые пакеты
+# Устанавливаем необходимые пакеты (ДО импорта config)
 install_package("PIL")
 install_package("dotenv")
 install_package("telegram")
 
-# Теперь импорты
-from PIL import Image
-from dotenv import load_dotenv
-import os
+# Теперь безопасно импортируем config
+from config import TOKEN, BOT_VERSION, BOT_AUTHOR
+
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
-from config import TOKEN, BOT_VERSION, BOT_AUTHOR
 from handlers.start_handler import start
 from handlers.convert_handler import handle_image
 from handlers.callback_handler import callback_handler
 from handlers.status_handler import status_command
 from handlers.payment_handler import buy_pro
-
-# Загрузка .env
-load_dotenv()
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
