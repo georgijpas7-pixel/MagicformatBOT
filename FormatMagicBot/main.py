@@ -2,9 +2,11 @@ import subprocess
 import sys
 
 # Принудительная установка нужных библиотек ДО любого импорта
-def install_package(package):
+def install_package(package, import_name=None):
+    if import_name is None:
+        import_name = package
     try:
-        __import__(package)
+        __import__(import_name)
         print(f"✅ {package} уже установлен")
     except ImportError:
         print(f"⚠️ {package} не найден, устанавливаю...")
@@ -12,9 +14,9 @@ def install_package(package):
         print(f"✅ {package} успешно установлен")
 
 # Устанавливаем необходимые пакеты (ДО импорта config)
-install_package("PIL")
-install_package("dotenv")
-install_package("telegram")
+install_package("Pillow", "PIL")  # Pillow импортируется как PIL
+install_package("python-dotenv", "dotenv")
+install_package("python-telegram-bot", "telegram")
 
 # Теперь безопасно импортируем config
 from config import TOKEN, BOT_VERSION, BOT_AUTHOR
