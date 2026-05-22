@@ -14,7 +14,7 @@ def install_package(package, import_name=None):
         print(f"✅ {package} успешно установлен")
 
 # Устанавливаем необходимые пакеты (ДО импорта config)
-install_package("Pillow", "PIL")  # Pillow импортируется как PIL
+install_package("Pillow", "PIL")
 install_package("python-dotenv", "dotenv")
 install_package("python-telegram-bot", "telegram")
 
@@ -26,7 +26,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQu
 from handlers.start_handler import start
 from handlers.convert_handler import handle_image
 from handlers.callback_handler import callback_handler
-from handlers.status_handler import status_command
+from handlers.status_handler import status_command, activate_pro
 from handlers.payment_handler import buy_pro
 
 # Настройка логирования
@@ -40,6 +40,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("status", status_command))
     app.add_handler(CommandHandler("buy_pro", buy_pro))
+    app.add_handler(CommandHandler("activate", activate_pro))  # <--- ДОБАВИТЬ
 
     # Обработчики сообщений
     app.add_handler(MessageHandler(filters.PHOTO | filters.Document.IMAGE, handle_image))
