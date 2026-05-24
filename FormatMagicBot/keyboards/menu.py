@@ -24,6 +24,9 @@ def conversion_menu(quality, ico_size):
             InlineKeyboardButton("🌐 WEBP", callback_data="convert_WEBP")
         ],
         [
+            InlineKeyboardButton("🎞️ GIF", callback_data="convert_GIF")
+        ],
+        [
             InlineKeyboardButton(
                 f"🎚 Качество: {quality}%", callback_data="quality_settings"),
             InlineKeyboardButton(
@@ -60,7 +63,7 @@ def ico_menu(current):
     return InlineKeyboardMarkup(keyboard)
 
 
-def batch_add_more_menu():
+def batch_add_more():
     keyboard = [
         [
             InlineKeyboardButton(
