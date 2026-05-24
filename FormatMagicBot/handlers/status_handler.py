@@ -5,16 +5,17 @@ from config import FREE_QUALITY_MAX, FREE_ICO_MAX, FREE_BATCH_MAX, ADMIN_ID
 from keyboards.menu import back_button, main_menu
 from services.pro_checker import pro_checker
 
+
 async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     username = update.effective_user.username
     first_name = update.effective_user.first_name
-    
+
     is_pro = pro_checker.is_pro(user_id)
     today = datetime.now().strftime("%Y-%m-%d")
     usage = pro_checker.usage.get(user_id, {})
     today_usage = usage.get(today, 0)
-    
+
     if is_pro:
         expiry = pro_checker.get_expiry_date(user_id)
         days_left = (expiry - datetime.now()).days if expiry else 0
@@ -48,22 +49,23 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📊 Конвертаций сегодня: {today_usage}\n\n"
             f"👑 Купить PRO: /buy_pro"
         )
-    
+
     await update.message.reply_text(status_text, reply_markup=back_button())
+
 
 async def status_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    
+
     user_id = update.effective_user.id
     username = update.effective_user.username
     first_name = update.effective_user.first_name
-    
+
     is_pro = pro_checker.is_pro(user_id)
     today = datetime.now().strftime("%Y-%m-%d")
     usage = pro_checker.usage.get(user_id, {})
     today_usage = usage.get(today, 0)
-    
+
     if is_pro:
         expiry = pro_checker.get_expiry_date(user_id)
         days_left = (expiry - datetime.now()).days if expiry else 0
@@ -97,60 +99,40 @@ async def status_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📊 Конвертаций сегодня: {today_usage}\n\n"
             f"👑 Купить PRO: /buy_pro"
         )
-    
+
     await query.edit_message_text(status_text, reply_markup=back_button())
+
 
 async def activate_pro(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Активация PRO подписки (только для администратора)"""
-    user_id = update.effective_user.id
-    
-    # Проверка, что команду вызывает администратор
-    if user_id != ADMIN_ID:
-        await update.message.reply_text("❌ Доступ запрещён. Только администратор может активировать PRO.")
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text("❌ Доступ запрещён")
         return
-    
-    # Получаем аргументы команды
+
     try:
-        target_user_id = int(context.args[0])
+        user_id = int(context.args[0])
         days = int(context.args[1]) if len(context.args) > 1 else 30
+
+        pro_checker.activate_pro(user_id, days)
+        expiry = pro_checker.get_expiry_date(user_id)
+
+        await update.message.reply_text(
+            f"✅ PRO активирован для пользователя {user_id}\n"
+            f"📆 На {days} дней\n"
+            f"📅 Действует до: {expiry.strftime('%d.%m.%Y')}"
+        )
+
+        # Уведомляем пользователя
+        try:
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=f"👑 PRO подписка активирована на {days} дней!\n\n"
+                f"✅ Действует до: {expiry.strftime('%d.%m.%Y')}\n\n"
+                f"Спасибо за поддержку! ❤️\n\n"
+                f"Проверить статус: /status"
+            )
+        except Exception as e:
+            await update.message.reply_text(f"⚠️ Не удалось уведомить пользователя: {e}")
+
     except (IndexError, ValueError):
-        await update.message.reply_text(
-            "❌ **Ошибка!**\n\n"
-            "Использование команды:\n"
-            "`/activate 5029334638 30`\n\n"
-            "Где:\n"
-            "• `5029334638` — Telegram ID пользователя\n"
-            "• `30` — количество дней подписки\n\n"
-            "Пример: `/activate 123456789 30`",
-            parse_mode="Markdown"
-        )
-        return
-    
-    # Активируем PRO
-    expiry = pro_checker.activate_pro(target_user_id, days)
-    
-    # Подтверждение администратору
-    await update.message.reply_text(
-        f"✅ **PRO активирован!**\n\n"
-        f"👤 Пользователь: `{target_user_id}`\n"
-        f"📆 Дней: {days}\n"
-        f"📅 Действует до: {expiry.strftime('%d.%m.%Y')}",
-        parse_mode="Markdown"
-    )
-    
-    # Уведомляем пользователя
-    try:
-        await context.bot.send_message(
-            chat_id=target_user_id,
-            text=f"👑 **PRO подписка активирована на {days} дней!**\n\n"
-                 f"✅ Действует до: {expiry.strftime('%d.%m.%Y')}\n\n"
-                 f"Спасибо за поддержку! ❤️\n\n"
-                 f"Проверить статус: `/status`",
-            parse_mode="Markdown"
-        )
-    except Exception as e:
-        await update.message.reply_text(
-            f"⚠️ Не удалось уведомить пользователя `{target_user_id}`.\n"
-            f"Ошибка: {e}",
-            parse_mode="Markdown"
-        )
+        await update.message.reply_text("❌ Используй: /activate 5029334638 30")
